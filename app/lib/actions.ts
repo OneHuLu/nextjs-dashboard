@@ -7,6 +7,10 @@ import { sql } from "@vercel/postgres";
 import { revalidatePath } from "next/cache";
 // 路由跳转
 import { redirect } from "next/navigation";
+// 登录校验
+import { signIn } from "@/auth";
+import { AuthError } from "next-auth";
+
 // 使用 Zod 定义了一个对象类型 Schema，描述了表单数据的结构及其验证规则
 const FormSchema = z.object({
   id: z.string(),
@@ -108,5 +112,25 @@ export async function deleteInvoice(id: string) {
     return { message: "Deleted Invoice." };
   } catch {
     return { message: "Database Error: Failed to Delete Invoice." };
+  }
+}
+
+// 权限验证方法
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData
+) {
+  try {
+    await signIn("credentials", formData);
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case "CredentialsSignin":
+          return "Invalid credentials.";
+        default:
+          return "Something went wrong.";
+      }
+    }
+    throw error;
   }
 }
