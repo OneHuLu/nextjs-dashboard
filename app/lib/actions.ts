@@ -121,7 +121,11 @@ export async function authenticate(
   formData: FormData
 ) {
   try {
-    await signIn("credentials", formData);
+    const formDataObj = Object.fromEntries(formData.entries());
+    await signIn("credentials", {
+      ...formDataObj,
+      redirectTo: "/dashboard/overview",
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
